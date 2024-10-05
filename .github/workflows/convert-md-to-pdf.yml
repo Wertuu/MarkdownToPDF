@@ -1,0 +1,33 @@
+name: Convert Markdown to PDF
+
+on:
+  push:
+    branches:
+      - main    # Run when code is pushed to the main branch
+  pull_request:
+    branches:
+      - main    # Also run on pull requests to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # The environment the workflow runs in
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Pandoc
+      run: sudo apt-get install pandoc -y  # Install Pandoc on the runner
+
+    - name: Convert Markdown files to PDF
+      run: |
+        mkdir -p output_pdf                # Create output directory
+        for file in *.md; do
+          pandoc "$file" -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF
+        done
+
+    - name: Upload PDF Files
+      uses: actions/upload-artifact@v2
+      with:
+        name: PDFs
+        path: output_pdf                   # Upload the generated PDFs as artifacts
