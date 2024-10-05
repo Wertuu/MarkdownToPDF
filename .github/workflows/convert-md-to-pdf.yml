@@ -14,11 +14,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3    # Use the latest version of actions/checkout
+      uses: actions/checkout@v4    # Use the latest version of actions/checkout
 
     # Cache texlive and pandoc
     - name: Cache texlive and pandoc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/bin/pandoc   # Path to the pandoc binary
@@ -35,7 +35,9 @@ jobs:
         sudo apt-get install pandoc wget perl -y && \
         wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
         tar -xzf install-tl-unx.tar.gz && \
-        cd install-tl-* && \
+        # Find the correct installation directory (avoid too many arguments issue)
+        TEXLIVE_DIR=$(find . -maxdepth 1 -type d -name "install-tl-*") && \
+        cd "$TEXLIVE_DIR" && \
         ./install-tl --profile=../texlive.profile --texdir=$HOME/texlive --no-interaction && \
         export PATH=$HOME/texlive/bin/x86_64-linux:$PATH  # Add texlive to PATH
 
@@ -55,7 +57,7 @@ jobs:
 
     # Upload PDF Files
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: PDFs
         path: output_pdf  # Upload the generated PDFs as artifacts
