@@ -14,35 +14,41 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4    # Use the latest version of actions/checkout
+      uses: actions/checkout@v4  # Use the latest version of actions/checkout
 
     - name: Cache texlive and pandoc
       uses: actions/cache@v4
       with:
         path: |
-          /usr/local/bin/pandoc
-          /usr/share/texlive
-          /usr/local/share/texmf
+          $HOME/.local/bin/pandoc
+          $HOME/.texlive
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
+
     - name: Install required packages (if not cached)
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc texlive-xetex -y  # Install required packages including texlive-xetex for xelatex
+        mkdir -p $HOME/.local/bin && \
+        mkdir -p $HOME/.texlive && \
+        sudo apt-get install pandoc texlive-xetex -y && \
+        cp /usr/bin/pandoc $HOME/.local/bin/pandoc && \
+        cp -r /usr/share/texlive $HOME/.texlive  # Install and move to user directories
+
     - name: List Files (Debugging Step)
-      run: ls -R   # This step will help you verify the file structure in the runner
+      run: ls -R  # This step will help you verify the file structure in the runner
 
     - name: Convert Markdown files to PDF
       run: |
         mkdir -p output_pdf  # Create output directory for PDFs
         for file in *.md; do
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
+          $HOME/.local/bin/pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
+
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v4      # Upload the generated PDFs as artifacts
+      uses: actions/upload-artifact@v4  # Upload the generated PDFs as artifacts
       with:
         name: PDFs
-        path: output_pdf                   # Upload the generated PDFs as artifacts
+        path: output_pdf  # Upload the generated PDFs as artifacts
