@@ -26,7 +26,7 @@ jobs:
       run: |
         mkdir -p output_pdf                # Create output directory
         for file in *.md; do
-          pandoc "$file" --pdf-engine=wkhtmltopdf -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF using wkhtmltopdf
+          pandoc "$file" --pdf-engine=wkhtmltopdf --enable-local-file-access -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF using wkhtmltopdf
         done
 
     - name: Upload PDF Files
