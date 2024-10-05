@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3    # Use the latest version of actions/checkout
 
     - name: Install Pandoc
       run: sudo apt-get install pandoc -y  # Install Pandoc on the runner
@@ -22,10 +22,13 @@ jobs:
     - name: Install wkhtmltopdf
       run: sudo apt-get install wkhtmltopdf -y  # Install wkhtmltopdf
 
+    - name: List Files (Debugging Step)
+      run: ls -R   # This step will help you verify the file structure in the runner
+
     - name: Convert Markdown files to PDF using wkhtmltopdf
       run: |
         mkdir -p output_pdf                # Create output directory
-        for file in *.md; do
+        for file in **/*.md; do
           pandoc "$file" --pdf-engine=wkhtmltopdf --enable-local-file-access -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF using wkhtmltopdf
         done
 
