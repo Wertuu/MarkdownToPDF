@@ -30,14 +30,14 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && \
+        sudo apt-get install pandoc texlive-xetex -y && \
         mkdir -p $HOME/.local/bin && \
         mkdir -p $HOME/.texlive && \
-        sudo apt-get install pandoc texlive-xetex -y && \
-        cp /usr/bin/pandoc $HOME/.local/bin/pandoc && \
-        cp -r /usr/share/texlive $HOME/.texlive  # Install and move to user directories
+        sudo cp /usr/bin/pandoc $HOME/.local/bin/pandoc && \
+        sudo cp -r /usr/share/texlive/* $HOME/.texlive  # Install and copy files to user directories
 
     - name: List Files (Debugging Step)
-      run: ls -R  # This step will help you verify the file structure in the runner
+      run: ls -R $HOME/.local/bin && ls -R $HOME/.texlive  # List files in the cached paths
 
     - name: Convert Markdown files to PDF
       run: |
