@@ -33,9 +33,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          $HOME/.cache/pandoc   # Cache directory for Pandoc
+          $HOME/.cache/pandoc   # Pandoc cache directory
           /var/lib/apt/lists     # Cache apt lists to speed up package installs
-          /var/cache/apt/archives
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
