@@ -16,35 +16,33 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4  # Use the latest version of actions/checkout
 
-    - name: Cache texlive and pandoc
+    - name: Cache Pandoc and Texlive dependencies
       uses: actions/cache@v4
       with:
         path: |
-          $HOME/.local/bin/pandoc
-          $HOME/.texlive
+          $HOME/.cache/pandoc   # Pandoc uses this cache path natively
+          /var/lib/apt/lists     # Cache apt lists to speed up package installs
+          /var/cache/apt/archives
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
 
-    - name: Install required packages (if not cached)
-      if: steps.cache.outputs.cache-hit != 'true'
+    - name: Install required packages
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc texlive-xetex -y && \
-        mkdir -p $HOME/.local/bin && \
-        mkdir -p $HOME/.texlive && \
-        sudo cp /usr/bin/pandoc $HOME/.local/bin/pandoc && \
-        sudo cp -r /usr/share/texlive/* $HOME/.texlive  # Install and copy files to user directories
+        sudo apt-get install -y pandoc texlive-xetex
 
     - name: List Files (Debugging Step)
-      run: ls -R $HOME/.local/bin && ls -R $HOME/.texlive  # List files in the cached paths
+      run: |
+        ls -R $HOME/.cache/pandoc  # Verify pandoc cache
+        ls -R /usr/share/texlive  # Verify texlive installation
 
     - name: Convert Markdown files to PDF
       run: |
         mkdir -p output_pdf  # Create output directory for PDFs
         for file in *.md; do
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
-          $HOME/.local/bin/pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
+          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
 
     - name: Upload PDF Files
