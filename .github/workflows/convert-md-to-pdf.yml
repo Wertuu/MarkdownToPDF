@@ -27,16 +27,18 @@ jobs:
     - name: Convert Markdown files to HTML
       run: |
         mkdir -p output_html                # Create output directory for HTML files
-        for file in **/*.md; do
+        for file in *.md; do
           markdown "$file" > "output_html/${file%.md}.html"  # Convert .md to .html
         done
         # List HTML files to confirm they were created
+        echo "HTML files created:"
         ls output_html
 
     - name: Convert HTML files to PDF using wkhtmltopdf
       run: |
         mkdir -p output_pdf                # Create output directory for PDFs
         for html_file in output_html/*.html; do
+          echo "Converting $html_file to PDF"  # Log the file being processed
           wkhtmltopdf --enable-local-file-access "$html_file" "output_pdf/${html_file##*/}"  # Convert each .html to PDF
         done
 
