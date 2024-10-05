@@ -2,38 +2,35 @@ name: Convert Markdown to PDF
 
 on:
   push:
-    branches:
-      - main    # Run when code is pushed to the main branch
+    paths:
+      - '**/*.md'  # Only run when .md files are changed
   pull_request:
-    branches:
-      - main    # Also run on pull requests to the main branch
+    paths:
+      - '**/*.md'  # Also run on pull requests when .md files are changed
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # The environment the workflow runs in
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3    # Use the latest version of actions/checkout
+      uses: actions/checkout@v3
 
     - name: Install required packages
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc texlive-xetex -y  # Install required packages including texlive-xetex for xelatex
-
-    - name: List Files (Debugging Step)
-      run: ls -R   # This step will help you verify the file structure in the runner
+        sudo apt-get install pandoc texlive-xetex -y
 
     - name: Convert Markdown files to PDF
       run: |
-        mkdir -p output_pdf  # Create output directory for PDFs
+        mkdir -p output_pdf
         for file in *.md; do
-          echo "Converting $file to PDF using xelatex"  # Log the file being processed
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
+          echo "Converting $file to PDF using xelatex"
+          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex
         done
 
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v4      # Upload the generated PDFs as artifacts
+      uses: actions/upload-artifact@v3
       with:
         name: PDFs
-        path: output_pdf                   # Upload the generated PDFs as artifacts
+        path: output_pdf
