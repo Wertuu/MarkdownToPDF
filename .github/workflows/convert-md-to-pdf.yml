@@ -16,48 +16,33 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4    # Use the latest version of actions/checkout
 
-    # Cache texlive and pandoc
     - name: Cache texlive and pandoc
       uses: actions/cache@v4
       with:
         path: |
-          /usr/local/bin/pandoc   # Path to the pandoc binary
-          $HOME/texlive           # Custom directory where texlive will be installed
+          /usr/local/bin/pandoc
+          /usr/share/texlive
+          /usr/local/share/texmf
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
-
-    # Install texlive manually if not cached
-    - name: Install texlive and pandoc (if cache miss)
+    - name: Install required packages (if not cached)
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc wget perl -y && \
-        wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
-        tar -xzf install-tl-unx.tar.gz && \
-        # Find the correct installation directory (avoid too many arguments issue)
-        TEXLIVE_DIR=$(find . -maxdepth 1 -type d -name "install-tl-*") && \
-        cd "$TEXLIVE_DIR" && \
-        ./install-tl --profile=../texlive.profile --texdir=$HOME/texlive --no-interaction && \
-        export PATH=$HOME/texlive/bin/x86_64-linux:$PATH  # Add texlive to PATH
-
-    # Debugging step to list files
+        sudo apt-get install pandoc texlive-xetex -y  # Install required packages including texlive-xetex for xelatex
     - name: List Files (Debugging Step)
       run: ls -R   # This step will help you verify the file structure in the runner
 
-    # Convert Markdown files to PDF
     - name: Convert Markdown files to PDF
       run: |
-        export PATH=$HOME/texlive/bin/x86_64-linux:$PATH  # Ensure texlive is in PATH
         mkdir -p output_pdf  # Create output directory for PDFs
         for file in *.md; do
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
           pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
-
-    # Upload PDF Files
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4      # Upload the generated PDFs as artifacts
       with:
         name: PDFs
-        path: output_pdf  # Upload the generated PDFs as artifacts
+        path: output_pdf                   # Upload the generated PDFs as artifacts
