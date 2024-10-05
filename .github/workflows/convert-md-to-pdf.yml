@@ -27,7 +27,7 @@ jobs:
         done
 
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PDFs
         path: output_pdf                   # Upload the generated PDFs as artifacts
