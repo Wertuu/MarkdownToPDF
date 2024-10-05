@@ -33,7 +33,7 @@ jobs:
         done
 
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v3      # Upload the generated PDFs as artifacts
+      uses: actions/upload-artifact@v4      # Upload the generated PDFs as artifacts
       with:
         name: PDFs
         path: output_pdf                   # Upload the generated PDFs as artifacts
