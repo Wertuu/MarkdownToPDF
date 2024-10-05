@@ -10,27 +10,42 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # The environment the workflow runs in
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4    # Use the latest version of actions/checkout
 
-    - name: Install required packages
+    - name: Cache texlive and pandoc
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/local/bin/pandoc
+          /usr/share/texlive
+          /usr/local/share/texmf
+        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
+        restore-keys: |
+          texlive-pandoc-${{ runner.os }}-
+
+    - name: Install required packages (if not cached)
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc texlive-xetex -y
+        sudo apt-get install pandoc texlive-xetex -y  # Install required packages including texlive-xetex for xelatex
+
+    - name: List Files (Debugging Step)
+      run: ls -R   # This step will help you verify the file structure in the runner
 
     - name: Convert Markdown files to PDF
       run: |
-        mkdir -p output_pdf
+        mkdir -p output_pdf  # Create output directory for PDFs
         for file in *.md; do
-          echo "Converting $file to PDF using xelatex"
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex
+          echo "Converting $file to PDF using xelatex"  # Log the file being processed
+          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
 
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4      # Upload the generated PDFs as artifacts
       with:
         name: PDFs
-        path: output_pdf
+        path: output_pdf                   # Upload the generated PDFs as artifacts
