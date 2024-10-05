@@ -16,20 +16,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3    # Use the latest version of actions/checkout
 
-    - name: Install wkhtmltopdf
-      run: sudo apt-get install wkhtmltopdf -y  # Install wkhtmltopdf
+    - name: Install required packages
+      run: |
+        sudo apt-get update && \
+        sudo apt-get install pandoc wkhtmltopdf markdown -y  # Install required packages
 
     - name: List Files (Debugging Step)
       run: ls -R   # This step will help you verify the file structure in the runner
 
-    - name: Convert Markdown files to PDF using wkhtmltopdf
+    - name: Convert Markdown files to HTML
       run: |
-        mkdir -p output_pdf                # Create output directory
+        mkdir -p output_html                # Create output directory for HTML files
         for file in **/*.md; do
-          # Convert each .md to PDF using wkhtmltopdf, assuming HTML conversion first
-          markdown_file="${file%.md}.html"  # Convert .md to .html first using markdown
-          markdown $file > $markdown_file
-          wkhtmltopdf --enable-local-file-access "$markdown_file" "output_pdf/${file%.md}.pdf"
+          markdown "$file" > "output_html/${file%.md}.html"  # Convert .md to .html
+        done
+        # List HTML files to confirm they were created
+        ls output_html
+
+    - name: Convert HTML files to PDF using wkhtmltopdf
+      run: |
+        mkdir -p output_pdf                # Create output directory for PDFs
+        for html_file in output_html/*.html; do
+          wkhtmltopdf --enable-local-file-access "$html_file" "output_pdf/${html_file##*/}"  # Convert each .html to PDF
         done
 
     - name: Upload PDF Files
