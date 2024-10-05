@@ -16,18 +16,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Pandoc
+    - name: Install Pandoc
       run: sudo apt-get install pandoc -y  # Install Pandoc on the runner
 
-    - name: Convert Markdown files to PDF
+    - name: Install wkhtmltopdf
+      run: sudo apt-get install wkhtmltopdf -y  # Install wkhtmltopdf
+
+    - name: Convert Markdown files to PDF using wkhtmltopdf
       run: |
         mkdir -p output_pdf                # Create output directory
         for file in *.md; do
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF
+          pandoc "$file" --pdf-engine=wkhtmltopdf -o "output_pdf/${file%.md}.pdf"  # Convert each .md to PDF using wkhtmltopdf
         done
 
     - name: Upload PDF Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3      # Updated to version 3
       with:
         name: PDFs
         path: output_pdf                   # Upload the generated PDFs as artifacts
