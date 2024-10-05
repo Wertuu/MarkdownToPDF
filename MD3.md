@@ -1,6 +1,6 @@
 Example Chapter: The Wonders of Markdown
 Markdown is a lightweight markup language with plain-text formatting syntax. It allows users to create formatted text using a plain-text editor.
-
+ 
 Table of **Contents**
 Introductions
 Formatting in Markdown
