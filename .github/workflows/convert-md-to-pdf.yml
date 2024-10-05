@@ -10,40 +10,52 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # The environment the workflow runs in
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3    # Use the latest version of actions/checkout
 
+    # Cache texlive and pandoc
     - name: Cache texlive and pandoc
       uses: actions/cache@v3
       with:
         path: |
-          /usr/local/bin/pandoc
-          $HOME/texlive              # Custom directory for texlive installation
+          /usr/local/bin/pandoc   # Path to the pandoc binary
+          $HOME/texlive           # Custom directory where texlive will be installed
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
 
-    - name: Install pandoc and texlive (if cache miss)
+    # Install texlive manually if not cached
+    - name: Install texlive and pandoc (if cache miss)
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update && \
-        sudo apt-get install pandoc -y && \
-        mkdir -p $HOME/texlive && \
-        sudo apt-get install texlive-xetex -y --install-dir=$HOME/texlive
+        sudo apt-get install pandoc wget perl -y && \
+        wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
+        tar -xzf install-tl-unx.tar.gz && \
+        cd install-tl-* && \
+        ./install-tl --profile=../texlive.profile --texdir=$HOME/texlive --no-interaction && \
+        export PATH=$HOME/texlive/bin/x86_64-linux:$PATH  # Add texlive to PATH
 
+    # Debugging step to list files
+    - name: List Files (Debugging Step)
+      run: ls -R   # This step will help you verify the file structure in the runner
+
+    # Convert Markdown files to PDF
     - name: Convert Markdown files to PDF
       run: |
-        mkdir -p output_pdf
+        export PATH=$HOME/texlive/bin/x86_64-linux:$PATH  # Ensure texlive is in PATH
+        mkdir -p output_pdf  # Create output directory for PDFs
         for file in *.md; do
-          echo "Converting $file to PDF using xelatex"
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex
+          echo "Converting $file to PDF using xelatex"  # Log the file being processed
+          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
 
+    # Upload PDF Files
     - name: Upload PDF Files
       uses: actions/upload-artifact@v3
       with:
         name: PDFs
-        path: output_pdf
+        path: output_pdf  # Upload the generated PDFs as artifacts
