@@ -28,7 +28,7 @@ jobs:
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
           pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
 
-    - name: Debug: Check Filesystem and Cache Directories
+    - name: Debug Check Filesystem and Cache Directories
       run: |
         echo "Checking system paths..."
         df -h       # Check mounted filesystems
