@@ -19,15 +19,19 @@ jobs:
     - name: Cache APT lists
       uses: actions/cache@v4
       with:
-        path: /var/lib/apt/lists
-        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
+        path: /tmp/apt-lists-cache
+        key: apt-lists-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
-          texlive-pandoc-${{ runner.os }}-
+          apt-lists-${{ runner.os }}-
 
     - name: Install required packages
       run: |
+        if [ -d /tmp/apt-lists-cache ]; then
+          sudo cp -r /tmp/apt-lists-cache/* /var/lib/apt/lists/  # Restore cached APT lists
+        fi
         sudo apt-get update && \
         sudo apt-get install -y pandoc texlive-xetex  # Install pandoc and texlive
+        sudo cp -r /var/lib/apt/lists/* /tmp/apt-lists-cache/  # Cache the current APT lists
 
     - name: Convert Markdown files to PDF
       run: |
