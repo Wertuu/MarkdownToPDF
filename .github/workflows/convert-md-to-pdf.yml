@@ -27,12 +27,13 @@ jobs:
         for file in *.md; do
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
           pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
+        done
 
     - name: Debug Check Filesystem and Cache Directories
       run: |
-        echo "Checking system paths..."
-        df -h       # Check mounted filesystems
-        ls -al $HOME/.cache/pandoc || echo "Pandoc cache directory does not exist"
+        echo "Checking system paths..." && \
+        df -h && \
+        ls -al $HOME/.cache/pandoc || echo "Pandoc cache directory does not exist" && \
         ls -al /var/lib/apt/lists || echo "APT lists directory does not exist"
 
     - name: Cache Pandoc and APT lists
