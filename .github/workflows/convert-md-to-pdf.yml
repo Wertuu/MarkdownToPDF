@@ -16,6 +16,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4  # Use the latest version of actions/checkout
 
+    - name: Cache APT lists
+      uses: actions/cache@v4
+      with:
+        path: /var/lib/apt/lists
+        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
+        restore-keys: |
+          texlive-pandoc-${{ runner.os }}-
+
     - name: Install required packages
       run: |
         sudo apt-get update && \
@@ -28,14 +36,6 @@ jobs:
           echo "Converting $file to PDF using xelatex"  # Log the file being processed
           pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
-
-    - name: Cache APT lists
-      uses: actions/cache@v4
-      with:
-        path: /var/lib/apt/lists  # Cache apt lists to speed up package installs (if exists)
-        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
-        restore-keys: |
-          texlive-pandoc-${{ runner.os }}-
 
     - name: Upload PDF Files
       uses: actions/upload-artifact@v4  # Upload the generated PDFs as artifacts
