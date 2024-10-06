@@ -29,19 +29,10 @@ jobs:
           pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
         done
 
-    - name: Debug Check Filesystem and Cache Directories
-      run: |
-        echo "Checking system paths..." && \
-        df -h && \
-        ls -al $HOME/.cache/pandoc || echo "Pandoc cache directory does not exist" && \
-        ls -al /var/lib/apt/lists || echo "APT lists directory does not exist"
-
-    - name: Cache Pandoc and APT lists
+    - name: Cache APT lists
       uses: actions/cache@v4
       with:
-        path: |
-          $HOME/.cache/pandoc   # Pandoc cache directory (if exists)
-          /var/lib/apt/lists     # Cache apt lists to speed up package installs (if exists)
+        path: /var/lib/apt/lists  # Cache apt lists to speed up package installs (if exists)
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
