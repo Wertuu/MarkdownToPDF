@@ -3,7 +3,7 @@ name: Convert Markdown to PDF
 on:
   push:
     paths:
-      - '**/*.md'
+      - '**/*.md'  # Only run when .md files are changed
   pull_request:
     paths:
       - '**/*.md'  # Also run on pull requests when .md files are changed
@@ -19,19 +19,21 @@ jobs:
     - name: Cache APT lists
       uses: actions/cache@v4
       with:
-        path: /tmp/apt-lists-cache
-        key: apt-lists-${{ runner.os }}-${{ hashFiles('**/*.md') }}
+        path: /var/lib/apt/lists
+        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
-          apt-lists-${{ runner.os }}-
+          texlive-pandoc-${{ runner.os }}-
+        # Exclude restricted directories
+        # This ensures we only cache non-restricted files
+        # like the actual package lists
+        tarExclude: |
+          /var/lib/apt/lists/partial
+          /var/lib/apt/lists/lock
 
     - name: Install required packages
       run: |
-        if [ -d /tmp/apt-lists-cache ]; then
-          sudo cp -r /tmp/apt-lists-cache/* /var/lib/apt/lists/  # Restore cached APT lists
-        fi
         sudo apt-get update && \
         sudo apt-get install -y pandoc texlive-xetex  # Install pandoc and texlive
-        sudo cp -r /var/lib/apt/lists/* /tmp/apt-lists-cache/  # Cache the current APT lists
 
     - name: Convert Markdown files to PDF
       run: |
