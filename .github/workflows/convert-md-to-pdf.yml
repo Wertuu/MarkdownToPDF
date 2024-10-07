@@ -6,7 +6,7 @@ jobs:
   convert_via_pandoc:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Create output directory
         run: mkdir output  # Create output directory for PDFs
@@ -18,11 +18,13 @@ jobs:
             docker run --rm \
               -v "$PWD:/data" \
               pandoc/latex:2.9 \
-              -f markdown "/data/$file" -o "/data/output/${filename}.pdf"
+              -f markdown \
+              --pdf-engine=xelatex \
+              "/data/$file" -o "/data/output/${filename}.pdf"
           done
 
       - name: Upload PDFs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: PDFs
           path: output
