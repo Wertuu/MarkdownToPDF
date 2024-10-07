@@ -1,58 +1,28 @@
-name: Convert Markdown to PDF
+name: Convert Markdown to PDFs
 
-on:
-  push:
-    paths:
-      - '**/*.md'  # Only run when .md files are changed
-  pull_request:
-    paths:
-      - '**/*.md'  # Also run on pull requests when .md files are changed
+on: push
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # The environment the workflow runs in
-
+  convert_via_pandoc:
+    runs-on: ubuntu-22.04
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4  # Use the latest version of actions/checkout
+      - uses: actions/checkout@v3
 
-    - name: Cache APT lists (restore)
-      id: apt-cache-restore
-      run: |
-        if [[ -f apt-cache.tar ]]; then
-          sudo tar -xf apt-cache.tar -C /
-        else
-          echo "No cache found."
-        fi
+      - name: Create output directory
+        run: mkdir output  # Create output directory for PDFs
 
-    - name: Install required packages
-      run: |
-        sudo apt-get update && \
-        sudo apt-get install -y pandoc texlive-xetex  # Install pandoc and texlive
+      - name: Convert each markdown file to PDF
+        run: |
+          for file in *.md; do
+            filename=$(basename "$file" .md)
+            docker run --rm \
+              -v "$PWD:/data" \
+              pandoc/latex:2.9 \
+              "/data/$file" -o "/data/output/${filename}.pdf"
+          done
 
-    - name: Convert Markdown files to PDF
-      run: |
-        mkdir -p output_pdf  # Create output directory for PDFs
-        for file in *.md; do
-          echo "Converting $file to PDF using xelatex"  # Log the file being processed
-          pandoc "$file" -o "output_pdf/${file%.md}.pdf" --pdf-engine=xelatex  # Convert .md to .pdf
-        done
-
-    - name: Upload PDF Files
-      uses: actions/upload-artifact@v4  # Upload the generated PDFs as artifacts
-      with:
-        name: PDFs
-        path: output_pdf  # Upload the generated PDFs as artifacts
-
-    - name: Cache APT lists (save)
-      if: always()
-      run: |
-        # Exclude problematic directories
-        sudo tar --exclude='./partial' --exclude='./lock' -czf apt-cache.tar -C /var/lib/apt/lists .
-      continue-on-error: true
-
-    - name: Upload cache tarball
-      uses: actions/upload-artifact@v4
-      with:
-        name: apt-cache
-        path: apt-cache.tar
+      - name: Upload PDFs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: PDFs
+          path: output
