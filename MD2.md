@@ -7,7 +7,7 @@ Formatting in Markdown
 Code Blocks
 Lists    
 Conclusion
-1. Introduction
+1. Introduction    
 Markdown is widely used in documentation, blogging, and even in email creation. Some of its features include:
 
 Simple syntax
