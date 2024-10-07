@@ -17,6 +17,7 @@ jobs:
             filename=$(basename "$file" .md)
             docker run --rm \
               -v "$PWD:/data" \
+              -u $(id -u):$(id -g) \
               pandoc/latex:2.9 \
               "/data/$file" -o "/data/output/${filename}.pdf"
           done
