@@ -16,19 +16,18 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4  # Use the latest version of actions/checkout
 
+    - name: Change permissions for APT lists
+      run: |
+        sudo chmod -R o+r /var/lib/apt/lists
+
     - name: Cache APT lists
       uses: actions/cache@v4
       with:
-        path: /var/lib/apt/lists
+        path: |
+          /var/lib/apt/lists
         key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
         restore-keys: |
           texlive-pandoc-${{ runner.os }}-
-        # Exclude restricted directories
-        # This ensures we only cache non-restricted files
-        # like the actual package lists
-        tarExclude: |
-          /var/lib/apt/lists/partial
-          /var/lib/apt/lists/lock
 
     - name: Install required packages
       run: |
