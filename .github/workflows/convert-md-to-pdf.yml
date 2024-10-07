@@ -16,18 +16,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4  # Use the latest version of actions/checkout
 
-    - name: Change permissions for APT lists
+    - name: Cache APT lists (restore)
+      id: apt-cache-restore
       run: |
-        sudo chmod -R o+r /var/lib/apt/lists
-
-    - name: Cache APT lists
-      uses: actions/cache@v4
-      with:
-        path: |
-          /var/lib/apt/lists
-        key: texlive-pandoc-${{ runner.os }}-${{ hashFiles('**/*.md') }}
-        restore-keys: |
-          texlive-pandoc-${{ runner.os }}-
+        if [[ -f apt-cache.tar ]]; then
+          sudo tar -xf apt-cache.tar -C /
+        else
+          echo "No cache found."
+        fi
 
     - name: Install required packages
       run: |
@@ -47,3 +43,16 @@ jobs:
       with:
         name: PDFs
         path: output_pdf  # Upload the generated PDFs as artifacts
+
+    - name: Cache APT lists (save)
+      if: always()
+      run: |
+        # Exclude problematic directories
+        sudo tar --exclude='./partial' --exclude='./lock' -czf apt-cache.tar -C /var/lib/apt/lists .
+      continue-on-error: true
+
+    - name: Upload cache tarball
+      uses: actions/upload-artifact@v4
+      with:
+        name: apt-cache
+        path: apt-cache.tar
